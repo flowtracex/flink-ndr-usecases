@@ -1,0 +1,81 @@
+============================================================
+UC-01: Lateral Movement Detection - Expected Output
+============================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LAYER 1: Flink Signal Generation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[INFO] Loading: sample-data.json
+[INFO] Loaded 40 events
+[INFO] Found 3 signal definitions
+
+[SIGNAL] port-scan
+  ✓ Port scan: 10.0.0.5 → 23 ports
+
+[SIGNAL] connection-spike
+  ✓ Connection spike: 10.0.0.5 (+10.0σ)
+
+[SIGNAL] privileged-access
+  ✓ Privileged access: 10.0.0.5 → SMB, RDP, SSH
+
+[INFO] Signals saved: signals-output.json
+
+============================================================
+Generated 3 signals
+============================================================
+  • PORT_SCAN: 10.0.0.5
+  • CONNECTION_SPIKE: 10.0.0.5
+  • PRIVILEGED_ACCESS: 10.0.0.5
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LAYER 2: Python Correlation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[INFO] Database initialized: ../../output/detections.db
+[INFO] Loading rules: rules.json
+[INFO] Loaded rule: lateral_movement_detection
+[INFO] Loading signals: ../signals-output.json
+[INFO] Loaded 3 signals
+
+============================================================
+LAYER 2: Multi-Signal Correlation
+============================================================
+
+[CHECK] Source IP: 10.0.0.5
+  Signals present: {'PORT_SCAN', 'CONNECTION_SPIKE', 'PRIVILEGED_ACCESS'}
+  Required: {'PORT_SCAN', 'CONNECTION_SPIKE', 'PRIVILEGED_ACCESS'}
+  ✓ All signals matched!
+  Time delta: 0.0 minutes (max: 15)
+
+[DETECTION] 🚨 LATERAL_MOVEMENT
+  Source: 10.0.0.5
+  Severity: CRITICAL
+  Signals: 3
+
+[INFO] Detections saved to SQLite: ../../output/detections.db
+
+============================================================
+Detection Summary
+============================================================
+
+Detection ID: LM-001-1738166145
+Type: LATERAL_MOVEMENT
+Source: 10.0.0.5
+Severity: CRITICAL
+Confidence: HIGH
+Signals: 3
+
+Contributing Signals:
+  • PORT_SCAN: MEDIUM
+  • CONNECTION_SPIKE: CRITICAL
+  • PRIVILEGED_ACCESS: CRITICAL
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ DETECTION COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 Results saved to: ../../output/detections.db
+
+🔍 Query detections:
+  sqlite3 ../../output/detections.db 'SELECT * FROM detections;'

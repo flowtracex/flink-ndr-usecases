@@ -1,0 +1,31 @@
+{
+  "rule_id": "LM-001",
+  "rule_name": "lateral_movement_detection",
+  "description": "Detects lateral movement via multi-signal correlation",
+  
+  "required_signals": [
+    "PORT_SCAN",
+    "CONNECTION_SPIKE",
+    "PRIVILEGED_ACCESS"
+  ],
+  
+  "time_window_minutes": 15,
+  
+  "detection_type": "LATERAL_MOVEMENT",
+  "severity": "CRITICAL",
+  "confidence": "HIGH",
+  
+  "mitre_attack": {
+    "tactic": "TA0008",
+    "technique": "T1021",
+    "name": "Lateral Movement - Remote Services"
+  },
+  
+  "recommended_actions": [
+    "Isolate source IP from network",
+    "Investigate user account",
+    "Check for data exfiltration",
+    "Review authentication logs",
+    "Scan source host for malware"
+  ]
+}

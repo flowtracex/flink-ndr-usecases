@@ -1,0 +1,25 @@
+[
+  {
+    "signal_type": "CONNECTION_SPIKE",
+    "src_ip": "10.0.0.5",
+    "connection_count": 40,
+    "deviation_score": 10.0,
+    "severity": "CRITICAL",
+    "timestamp": "2025-01-29T10:15:40Z"
+  },
+  {
+    "signal_type": "PORT_SCAN",
+    "src_ip": "10.0.0.5",
+    "unique_ports": 24,
+    "severity": "MEDIUM",
+    "timestamp": "2025-01-29T10:15:40Z"
+  },
+  {
+    "signal_type": "PRIVILEGED_ACCESS",
+    "src_ip": "10.0.0.5",
+    "unique_services": 4,
+    "services_list": "WinRM, RDP, SMB, SSH",
+    "severity": "CRITICAL",
+    "timestamp": "2025-01-29T10:15:40Z"
+  }
+]
