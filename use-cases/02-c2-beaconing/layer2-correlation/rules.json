@@ -1,0 +1,14 @@
+{
+  "rule_id": "C2-BEACON-001",
+  "rule_name": "Command-and-Control Beaconing Detection",
+  "detection_type": "Active C2 Communication",
+  "required_signals": [
+    "PERIODIC_BEACON",
+    "PERSISTENT_DESTINATION",
+    "COMMAND_EXCHANGE"
+  ],
+  "time_window_minutes": 15,
+  "severity": "CRITICAL",
+  "confidence": "HIGH",
+  "description": "Detects infected hosts communicating with external C2 infrastructure through correlated beaconing, persistent connections, and command-exchange patterns"
+}

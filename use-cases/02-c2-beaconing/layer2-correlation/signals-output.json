@@ -1,0 +1,39 @@
+[
+  {
+    "signal_type": "PERIODIC_BEACON",
+    "src_ip": "192.168.1.45",
+    "dest_ip": "203.0.113.99",
+    "dest_port": 8443,
+    "connection_count": 12,
+    "avg_interval_seconds": 60.2,
+    "interval_stddev": 2.1,
+    "severity": "HIGH",
+    "timestamp": "2026-02-04T14:32:00Z"
+  },
+  {
+    "signal_type": "PERSISTENT_DESTINATION",
+    "src_ip": "192.168.1.45",
+    "dest_ip": "203.0.113.99",
+    "dest_port": 8443,
+    "connection_count": 18,
+    "internal_hosts_contacting": 1,
+    "total_bytes_sent": 4520,
+    "total_bytes_received": 15840,
+    "severity": "CRITICAL",
+    "timestamp": "2026-02-04T14:35:00Z"
+  },
+  {
+    "signal_type": "COMMAND_EXCHANGE",
+    "src_ip": "192.168.1.45",
+    "dest_ip": "203.0.113.99",
+    "dest_port": 8443,
+    "exchange_count": 8,
+    "avg_request_size": 235,
+    "avg_response_size": 1420,
+    "total_sent": 1880,
+    "total_received": 11360,
+    "response_ratio": 6.04,
+    "severity": "HIGH",
+    "timestamp": "2026-02-04T14:38:00Z"
+  }
+]
