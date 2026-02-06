@@ -168,14 +168,22 @@ cd use-cases/01-lateral-movement
 - Connection fan-out
 - Privileged access patterns
 
+**UC-02: Command-and-Control (C2) Beaconing Detection**
+- Periodic beaconing to rare external endpoints
+- Persistent communication with suspicious C2 servers
+- Request/response command patterns
+
+**UC-07: Large Volume Data Exfiltration Detection**
+- Internal data staging from multiple internal sources
+- Large outbound upload spike
+- Multiple external destinations (multi-drop exfiltration)
+
 ### 🔜 Coming Soon
 
 - SMB lateral spread
 - Privilege escalation
 - DNS tunneling
-- Command & Control beaconing
-- Data exfiltration
-- *...and 10 more core use cases*
+- *...and more core use cases*
 
 ---
 

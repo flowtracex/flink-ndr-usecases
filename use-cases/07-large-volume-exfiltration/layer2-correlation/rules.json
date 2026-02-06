@@ -1,0 +1,75 @@
+{
+    "rule_id": "EXFIL-001",
+    "rule_name": "large_volume_exfiltration_detection",
+    "description": "Detects large-scale data exfiltration via multi-signal correlation",
+    
+    "required_signals": [
+      "DATA_STAGING",
+      "OUTBOUND_SPIKE",
+      "DESTINATION_DIVERSITY"
+    ],
+    
+    "time_window_minutes": 15,
+    
+    "detection_type": "LARGE_VOLUME_EXFILTRATION",
+    "severity": "CRITICAL",
+    "confidence": "HIGH",
+    
+    "mitre_attack": {
+      "tactic": "TA0010",
+      "tactic_name": "Exfiltration",
+      "techniques": [
+        {
+          "id": "T1567",
+          "name": "Exfiltration Over Web Service",
+          "sub_techniques": ["T1567.001", "T1567.002"]
+        },
+        {
+          "id": "T1048",
+          "name": "Exfiltration Over Alternative Protocol"
+        },
+        {
+          "id": "T1074",
+          "name": "Data Staged",
+          "sub_techniques": ["T1074.001", "T1074.002"]
+        }
+      ]
+    },
+    
+    "recommended_actions": [
+      "🚨 IMMEDIATE: Isolate source IP from network (block outbound)",
+      "🔍 Investigate user account for compromise indicators",
+      "📊 Review data access logs for sensitive file access",
+      "🛡️ Identify exfiltrated data types and assess impact",
+      "🔎 Scan source host for malware, RATs, or backdoors",
+      "📞 Contact user to validate activity legitimacy",
+      "🗂️ Preserve forensic evidence (disk images, memory dumps)",
+      "📋 Initiate incident response playbook",
+      "🔐 Force password reset if account compromise suspected",
+      "📡 Check for additional compromised hosts (lateral movement)"
+    ],
+    
+    "false_positive_considerations": [
+      "Legitimate bulk data transfers (backups, migrations)",
+      "Cloud sync applications (OneDrive, Dropbox)",
+      "Software developers uploading code/artifacts",
+      "Data science teams downloading/uploading datasets",
+      "System administrators performing maintenance"
+    ],
+    
+    "tuning_notes": {
+      "staging_threshold_mb": 500,
+      "outbound_spike_threshold_mb": 1000,
+      "destination_diversity_count": 5,
+      "time_window_minutes": 15,
+      "severity_escalation": "Increase to CRITICAL if >5GB exfiltrated"
+    },
+    
+    "metadata": {
+      "created_by": "NDR Detection Engineering",
+      "last_updated": "2026-02-06",
+      "version": "1.0",
+      "ml_model": "isolation_forest_v1",
+      "baseline_window_days": 7
+    }
+  }

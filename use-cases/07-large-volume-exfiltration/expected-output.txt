@@ -1,0 +1,87 @@
+Expected Detection Output for UC-07: Large Volume Data Exfiltration
+
+================================================================================
+LAYER 1: SIGNAL GENERATION (Flink SQL)
+================================================================================
+
+Signal 1: DATA_STAGING
+  Source IP: 10.100.50.25
+  Total Staged: 1.1 GB (internal SMB transfers)
+  Severity: MEDIUM → HIGH
+  Window: 10:15 - 10:20 (5 minutes)
+  Threshold Exceeded: ✓ (>500MB)
+
+Signal 2: OUTBOUND_SPIKE  
+  Source IP: 10.100.50.25
+  Bytes Uploaded: 2.2 GB
+  Upload Ratio: 15.3 (upload >> download)
+  Severity: CRITICAL
+  Window: 10:20 - 10:25 (5 minutes)
+  Anomaly Score: 8.2 (>3 std deviations)
+  ML Model: Isolation Forest TRIGGERED ✓
+
+Signal 3: DESTINATION_DIVERSITY
+  Source IP: 10.100.50.25
+  Unique Destinations: 6 external IPs
+  Total Bytes: 2.2 GB
+  Severity: HIGH
+  Window: 10:20 - 10:30 (10 minutes)
+  Threshold Exceeded: ✓ (>5 unique IPs)
+
+================================================================================
+LAYER 2: MULTI-SIGNAL CORRELATION
+================================================================================
+
+[CHECK] Source IP: 10.100.50.25
+  Signals present: {DATA_STAGING, OUTBOUND_SPIKE, DESTINATION_DIVERSITY}
+  Required: {DATA_STAGING, OUTBOUND_SPIKE, DESTINATION_DIVERSITY}
+  ✓ All signals matched!
+  
+  Time delta: 12.5 minutes (max: 15)
+  ✓ Within correlation window
+
+[DETECTION] 🚨 LARGE_VOLUME_EXFILTRATION
+  Source: 10.100.50.25
+  Severity: CRITICAL
+  Confidence: HIGH
+  Signals: 3
+  Data Exfiltrated: 2.20 GB
+  Unique Destinations: 6
+
+================================================================================
+DETECTION SUMMARY
+================================================================================
+
+Detection ID: EXFIL-001-1738867500
+Type: LARGE_VOLUME_EXFILTRATION
+Source: 10.100.50.25
+Severity: CRITICAL
+Confidence: HIGH
+Signals: 3
+
+Contributing Signals:
+  • DATA_STAGING: MEDIUM (1.1 GB staged internally)
+  • OUTBOUND_SPIKE: CRITICAL (2.2 GB uploaded, 8.2σ anomaly)
+  • DESTINATION_DIVERSITY: HIGH (6 unique external IPs)
+
+Recommended Actions:
+  🚨 IMMEDIATE: Isolate source IP from network (block outbound)
+  🔍 Investigate user account for compromise indicators
+  📊 Review data access logs for sensitive file access
+  🛡️ Identify exfiltrated data types and assess impact
+  🔎 Scan source host for malware, RATs, or backdoors
+
+MITRE ATT&CK:
+  Tactic: TA0010 (Exfiltration)
+  Techniques: T1567 (Exfiltration Over Web Service)
+              T1048 (Exfiltration Over Alternative Protocol)
+              T1074 (Data Staged)
+
+================================================================================
+SAVED TO: output/detections.db
+================================================================================
+✓ Detection persisted to SQLite
+✓ Alert ready for SIEM/SOAR integration
+✓ Forensic evidence preserved
+
+================================================================================

@@ -1,0 +1,38 @@
+[
+  {
+    "signal_type": "DATA_STAGING",
+    "src_ip": "10.100.50.25",
+    "total_bytes_staged": 1100000000,
+    "transfer_count": 2,
+    "severity": "HIGH",
+    "timestamp": "2026-02-06T10:16:00Z"
+  },
+  {
+    "signal_type": "DESTINATION_DIVERSITY",
+    "src_ip": "10.100.50.25",
+    "unique_destinations": 6,
+    "total_bytes_sent": 2200000000,
+    "severity": "MEDIUM",
+    "timestamp": "2026-02-06T10:25:00Z"
+  },
+  {
+    "signal_type": "OUTBOUND_SPIKE",
+    "src_ip": "10.100.50.25",
+    "bytes_uploaded": 2200000000,
+    "bytes_downloaded": 1100000000,
+    "upload_ratio": 2.0,
+    "deviation_score": 86.0,
+    "severity": "CRITICAL",
+    "timestamp": "2026-02-06T10:25:00Z"
+  },
+  {
+    "signal_type": "OUTBOUND_SPIKE",
+    "src_ip": "10.100.60.40",
+    "bytes_uploaded": 50000000,
+    "bytes_downloaded": 0,
+    "upload_ratio": 999.0,
+    "deviation_score": 0.0,
+    "severity": "HIGH",
+    "timestamp": "2026-02-06T10:10:00Z"
+  }
+]

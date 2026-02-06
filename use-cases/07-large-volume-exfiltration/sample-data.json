@@ -1,0 +1,102 @@
+[
+    {
+      "event_time": "2026-02-06T10:15:00Z",
+      "src_ip": "10.100.50.25",
+      "dest_ip": "10.100.10.15",
+      "dest_port": 445,
+      "bytes_transferred": 650000000,
+      "protocol": "SMB",
+      "is_outbound": false,
+      "comment": "Stage 1: Internal data staging - copying files to local workstation"
+    },
+    {
+      "event_time": "2026-02-06T10:16:00Z",
+      "src_ip": "10.100.50.25",
+      "dest_ip": "10.100.20.30",
+      "dest_port": 445,
+      "bytes_transferred": 450000000,
+      "protocol": "SMB",
+      "is_outbound": false,
+      "comment": "Stage 1: Continued staging from multiple internal sources"
+    },
+    {
+      "event_time": "2026-02-06T10:20:00Z",
+      "src_ip": "10.100.50.25",
+      "dest_ip": "185.220.101.45",
+      "dest_port": 443,
+      "bytes_transferred": 850000000,
+      "protocol": "HTTPS",
+      "is_outbound": true,
+      "comment": "Stage 2: Large outbound upload to external cloud storage"
+    },
+    {
+      "event_time": "2026-02-06T10:21:30Z",
+      "src_ip": "10.100.50.25",
+      "dest_ip": "91.234.56.78",
+      "dest_port": 443,
+      "bytes_transferred": 420000000,
+      "protocol": "HTTPS",
+      "is_outbound": true,
+      "comment": "Stage 2: Continued exfiltration to different destination"
+    },
+    {
+      "event_time": "2026-02-06T10:22:00Z",
+      "src_ip": "10.100.50.25",
+      "dest_ip": "203.0.113.88",
+      "dest_port": 443,
+      "bytes_transferred": 380000000,
+      "protocol": "HTTPS",
+      "is_outbound": true,
+      "comment": "Stage 3: Multiple destinations - redundancy"
+    },
+    {
+      "event_time": "2026-02-06T10:23:00Z",
+      "src_ip": "10.100.50.25",
+      "dest_ip": "198.51.100.92",
+      "dest_port": 443,
+      "bytes_transferred": 220000000,
+      "protocol": "HTTPS",
+      "is_outbound": true,
+      "comment": "Stage 3: 4th unique destination"
+    },
+    {
+      "event_time": "2026-02-06T10:24:00Z",
+      "src_ip": "10.100.50.25",
+      "dest_ip": "192.0.2.150",
+      "dest_port": 443,
+      "bytes_transferred": 180000000,
+      "protocol": "HTTPS",
+      "is_outbound": true,
+      "comment": "Stage 3: 5th unique destination - diversity threshold met"
+    },
+    {
+      "event_time": "2026-02-06T10:25:00Z",
+      "src_ip": "10.100.50.25",
+      "dest_ip": "198.18.0.75",
+      "dest_port": 443,
+      "bytes_transferred": 150000000,
+      "protocol": "HTTPS",
+      "is_outbound": true,
+      "comment": "Stage 3: 6th destination - confirming multi-drop exfiltration"
+    },
+    {
+      "event_time": "2026-02-06T10:10:00Z",
+      "src_ip": "10.100.60.40",
+      "dest_ip": "8.8.8.8",
+      "dest_port": 443,
+      "bytes_transferred": 50000000,
+      "protocol": "HTTPS",
+      "is_outbound": true,
+      "comment": "Benign traffic - legitimate user browsing (not enough volume)"
+    },
+    {
+      "event_time": "2026-02-06T10:12:00Z",
+      "src_ip": "10.100.70.15",
+      "dest_ip": "10.100.5.20",
+      "dest_port": 445,
+      "bytes_transferred": 200000000,
+      "protocol": "SMB",
+      "is_outbound": false,
+      "comment": "Benign traffic - internal file copy (below staging threshold)"
+    }
+  ]
