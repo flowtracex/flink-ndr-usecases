@@ -178,6 +178,11 @@ cd use-cases/01-lateral-movement
 - Large outbound upload spike
 - Multiple external destinations (multi-drop exfiltration)
 
+**UC-11: DNS-Based Exfiltration Detection**
+- DNS query burst from an internal host
+- High-entropy DNS labels that look encoded
+- Repeated encoded chunks to the same tunnel domain
+
 ### 🔜 Coming Soon
 
 - SMB lateral spread

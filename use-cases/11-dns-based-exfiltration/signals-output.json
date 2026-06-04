@@ -1,0 +1,27 @@
+[
+  {
+    "signal_type": "DNS_QUERY_BURST",
+    "src_ip": "10.100.80.44",
+    "query_count": 30,
+    "unique_queries": 30,
+    "severity": "MEDIUM",
+    "timestamp": "2026-02-11T02:12:25Z"
+  },
+  {
+    "signal_type": "ENCODED_TUNNELING_PATTERN",
+    "src_ip": "10.100.80.44",
+    "tunnel_domain": "tunnel-drop.example",
+    "encoded_chunk_count": 18,
+    "query_types": "A, TXT",
+    "severity": "HIGH",
+    "timestamp": "2026-02-11T02:11:25Z"
+  },
+  {
+    "signal_type": "HIGH_ENTROPY_DNS",
+    "src_ip": "10.100.80.44",
+    "suspicious_query_count": 18,
+    "avg_entropy": 4.55,
+    "severity": "HIGH",
+    "timestamp": "2026-02-11T02:11:25Z"
+  }
+]

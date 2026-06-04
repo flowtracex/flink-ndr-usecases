@@ -1,0 +1,53 @@
+{
+  "rule_id": "DNS-EXFIL-001",
+  "rule_name": "dns_based_exfiltration_detection",
+  "description": "Detects covert data exfiltration over DNS via multi-signal correlation",
+  "required_signals": [
+    "DNS_QUERY_BURST",
+    "HIGH_ENTROPY_DNS",
+    "ENCODED_TUNNELING_PATTERN"
+  ],
+  "time_window_minutes": 10,
+  "detection_type": "DNS_BASED_EXFILTRATION",
+  "severity": "CRITICAL",
+  "confidence": "HIGH",
+  "mitre_attack": {
+    "tactic": "TA0010",
+    "tactic_name": "Exfiltration",
+    "techniques": [
+      {
+        "id": "T1048",
+        "name": "Exfiltration Over Alternative Protocol"
+      },
+      {
+        "id": "T1048.003",
+        "name": "Exfiltration Over Unencrypted Non-C2 Protocol"
+      },
+      {
+        "id": "T1071.004",
+        "name": "Application Layer Protocol: DNS"
+      }
+    ]
+  },
+  "recommended_actions": [
+    "Block or sinkhole the suspicious tunnel domain",
+    "Isolate the source host if active exfiltration is confirmed",
+    "Review DNS logs for other hosts querying the same domain",
+    "Inspect endpoint process/network activity on the source host",
+    "Check whether sensitive data access occurred before the DNS burst",
+    "Preserve DNS logs and endpoint telemetry for incident response"
+  ],
+  "false_positive_considerations": [
+    "Security tools performing DNS tests",
+    "Telemetry agents with encoded host identifiers",
+    "Content delivery or tracking domains with long cache-busting labels",
+    "Internal test domains used by engineering teams"
+  ],
+  "tuning_notes": {
+    "dns_query_burst_threshold": 25,
+    "high_entropy_label_length": 24,
+    "entropy_threshold": 3.5,
+    "encoded_chunk_threshold": 12,
+    "time_window_minutes": 10
+  }
+}

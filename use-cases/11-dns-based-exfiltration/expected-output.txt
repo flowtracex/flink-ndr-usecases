@@ -1,0 +1,34 @@
+============================================================
+UC-11: DNS-Based Exfiltration Detection - Expected Output
+============================================================
+
+LAYER 1: Flink Signal Generation
+
+[INFO] Loading: sample-data.json
+[INFO] Loaded 33 events
+[INFO] Found 3 signal definitions
+
+[SIGNAL] dns-query-burst
+  ✓ DNS query burst: 10.100.80.44 -> 30 queries
+
+[SIGNAL] encoded-tunneling-pattern
+  ✓ Encoded tunneling pattern: 10.100.80.44 -> 18 chunks to tunnel-drop.example
+
+[SIGNAL] high-entropy-dns
+  ✓ High-entropy DNS: 10.100.80.44 -> 18 suspicious queries
+
+Generated 3 signals
+  • DNS_QUERY_BURST: 10.100.80.44
+  • ENCODED_TUNNELING_PATTERN: 10.100.80.44
+  • HIGH_ENTROPY_DNS: 10.100.80.44
+
+LAYER 2: Python Correlation
+
+[DETECTION] DNS_BASED_EXFILTRATION
+  Source: 10.100.80.44
+  Tunnel Domain: tunnel-drop.example
+  Severity: CRITICAL
+  Signals: 3
+  Encoded Chunks: 18
+
+Results saved to: ../../output/dns-exfil-detections.db

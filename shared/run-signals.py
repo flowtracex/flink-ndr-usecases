@@ -8,6 +8,8 @@ Usage: python run-signals.py <signals_directory>
 
 import sys
 import json
+import math
+import re
 from pathlib import Path
 
 class FlinkSQLSignalRunner:
@@ -59,6 +61,12 @@ class FlinkSQLSignalRunner:
             return self._detect_outbound_spike(events)
         elif "destination-diversity" in signal_name or "destination_diversity" in signal_name:
             return self._detect_destination_diversity(events)
+        elif "dns-query-burst" in signal_name or "dns_query_burst" in signal_name:
+            return self._detect_dns_query_burst(events)
+        elif "high-entropy-dns" in signal_name or "high_entropy_dns" in signal_name:
+            return self._detect_high_entropy_dns(events)
+        elif "encoded-tunneling-pattern" in signal_name or "encoded_tunneling_pattern" in signal_name:
+            return self._detect_encoded_tunneling_pattern(events)
         return []
     
     def _detect_port_scan(self, events):
@@ -262,6 +270,156 @@ class FlinkSQLSignalRunner:
                 print(f"  ✓ Destination diversity: {src_ip} → {unique_destinations} unique destinations")
                 signals.append(signal)
         return signals
+
+    def _detect_dns_query_burst(self, events):
+        """Detect unusually high DNS query volume from one host"""
+        dns_by_ip = {}
+
+        for event in events:
+            if event.get('protocol') != 'DNS':
+                continue
+
+            src_ip = event.get('src_ip')
+            query = event.get('query') or event.get('dns_query')
+            if not src_ip or not query:
+                continue
+
+            if src_ip not in dns_by_ip:
+                dns_by_ip[src_ip] = {'queries': [], 'last_time': ''}
+
+            dns_by_ip[src_ip]['queries'].append(query)
+            event_time = event.get('event_time') or event.get('ts') or ''
+            if event_time > dns_by_ip[src_ip]['last_time']:
+                dns_by_ip[src_ip]['last_time'] = event_time
+
+        signals = []
+        for src_ip, data in dns_by_ip.items():
+            query_count = len(data['queries'])
+            unique_queries = len(set(data['queries']))
+
+            if query_count >= 25 and unique_queries >= 20:
+                signal = {
+                    'signal_type': 'DNS_QUERY_BURST',
+                    'src_ip': src_ip,
+                    'query_count': query_count,
+                    'unique_queries': unique_queries,
+                    'severity': 'HIGH' if query_count >= 40 else 'MEDIUM',
+                    'timestamp': data['last_time']
+                }
+                print(f"  ✓ DNS query burst: {src_ip} → {query_count} queries")
+                signals.append(signal)
+        return signals
+
+    def _detect_high_entropy_dns(self, events):
+        """Detect DNS queries with random-looking labels"""
+        entropy_by_ip = {}
+
+        for event in events:
+            if event.get('protocol') != 'DNS':
+                continue
+
+            src_ip = event.get('src_ip')
+            query = event.get('query') or event.get('dns_query')
+            if not src_ip or not query:
+                continue
+
+            left_label = query.split('.')[0].lower()
+            entropy = self._shannon_entropy(left_label)
+
+            if len(left_label) >= 24 and entropy >= 3.5:
+                if src_ip not in entropy_by_ip:
+                    entropy_by_ip[src_ip] = {'queries': [], 'entropy': [], 'last_time': ''}
+                entropy_by_ip[src_ip]['queries'].append(query)
+                entropy_by_ip[src_ip]['entropy'].append(entropy)
+                event_time = event.get('event_time') or event.get('ts') or ''
+                if event_time > entropy_by_ip[src_ip]['last_time']:
+                    entropy_by_ip[src_ip]['last_time'] = event_time
+
+        signals = []
+        for src_ip, data in entropy_by_ip.items():
+            suspicious_count = len(data['queries'])
+            if suspicious_count >= 10:
+                avg_entropy = sum(data['entropy']) / suspicious_count
+                signal = {
+                    'signal_type': 'HIGH_ENTROPY_DNS',
+                    'src_ip': src_ip,
+                    'suspicious_query_count': suspicious_count,
+                    'avg_entropy': round(avg_entropy, 2),
+                    'severity': 'CRITICAL' if suspicious_count >= 20 else 'HIGH',
+                    'timestamp': data['last_time']
+                }
+                print(f"  ✓ High-entropy DNS: {src_ip} → {suspicious_count} suspicious queries")
+                signals.append(signal)
+        return signals
+
+    def _detect_encoded_tunneling_pattern(self, events):
+        """Detect repeated encoded chunks to the same DNS tunnel domain"""
+        tunnel_by_ip_domain = {}
+        encoded_label = re.compile(r'^[a-z0-9]{24,}$')
+
+        for event in events:
+            if event.get('protocol') != 'DNS':
+                continue
+
+            src_ip = event.get('src_ip')
+            query = event.get('query') or event.get('dns_query')
+            query_type = event.get('query_type', 'A')
+            if not src_ip or not query:
+                continue
+
+            labels = query.lower().split('.')
+            if len(labels) < 3:
+                continue
+
+            left_label = labels[0]
+            registered_domain = '.'.join(labels[-2:])
+
+            if query_type in {'TXT', 'NULL', 'A'} and encoded_label.match(left_label):
+                key = (src_ip, registered_domain)
+                if key not in tunnel_by_ip_domain:
+                    tunnel_by_ip_domain[key] = {
+                        'chunks': set(),
+                        'query_types': set(),
+                        'last_time': ''
+                    }
+                tunnel_by_ip_domain[key]['chunks'].add(left_label)
+                tunnel_by_ip_domain[key]['query_types'].add(query_type)
+                event_time = event.get('event_time') or event.get('ts') or ''
+                if event_time > tunnel_by_ip_domain[key]['last_time']:
+                    tunnel_by_ip_domain[key]['last_time'] = event_time
+
+        signals = []
+        for (src_ip, domain), data in tunnel_by_ip_domain.items():
+            chunk_count = len(data['chunks'])
+            if chunk_count >= 12:
+                signal = {
+                    'signal_type': 'ENCODED_TUNNELING_PATTERN',
+                    'src_ip': src_ip,
+                    'tunnel_domain': domain,
+                    'encoded_chunk_count': chunk_count,
+                    'query_types': ', '.join(sorted(data['query_types'])),
+                    'severity': 'CRITICAL' if chunk_count >= 20 else 'HIGH',
+                    'timestamp': data['last_time']
+                }
+                print(f"  ✓ Encoded tunneling pattern: {src_ip} → {chunk_count} chunks to {domain}")
+                signals.append(signal)
+        return signals
+
+    def _shannon_entropy(self, value):
+        """Calculate Shannon entropy for a string."""
+        if not value:
+            return 0.0
+
+        frequencies = {}
+        for char in value:
+            frequencies[char] = frequencies.get(char, 0) + 1
+
+        entropy = 0.0
+        length = len(value)
+        for count in frequencies.values():
+            probability = count / length
+            entropy -= probability * math.log2(probability)
+        return entropy
     
     def run(self):
         """Execute all SQL files"""
