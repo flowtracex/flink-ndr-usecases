@@ -188,6 +188,11 @@ cd use-cases/01-lateral-movement
 - High-entropy DNS labels that look encoded
 - Repeated encoded chunks to the same tunnel domain
 
+**UC-27: Suspicious File Download / Malware Delivery Detection**
+- Executable or script download from Zeek file metadata
+- Rare external source serving the file
+- New outbound beacon behavior after download
+
 ### 🔜 Coming Soon
 
 - SMB lateral spread

@@ -73,6 +73,12 @@ class FlinkSQLSignalRunner:
             return self._detect_admin_management_protocol(events)
         elif "destructive-recovery-action" in signal_name or "destructive_recovery_action" in signal_name:
             return self._detect_destructive_recovery_action(events)
+        elif "executable-file-download" in signal_name or "executable_file_download" in signal_name:
+            return self._detect_executable_file_download(events)
+        elif "rare-external-source" in signal_name or "rare_external_source" in signal_name:
+            return self._detect_rare_external_source(events)
+        elif "post-download-beacon" in signal_name or "post_download_beacon" in signal_name:
+            return self._detect_post_download_beacon(events)
         return []
     
     def _detect_port_scan(self, events):
@@ -548,6 +554,177 @@ class FlinkSQLSignalRunner:
                     'timestamp': data['last_time']
                 }
                 print(f"  ✓ Destructive recovery action: {src_ip} → {data['count']} actions")
+                signals.append(signal)
+        return signals
+
+    def _detect_executable_file_download(self, events):
+        """Detect executable or script downloads from Zeek file/http metadata."""
+        risky_mime_types = {
+            'application/x-dosexec',
+            'application/x-msdownload',
+            'application/x-executable',
+            'application/x-sh',
+            'application/javascript',
+            'text/x-powershell'
+        }
+        risky_extensions = ('.exe', '.dll', '.scr', '.ps1', '.bat', '.cmd', '.vbs', '.js')
+        downloads_by_ip = {}
+
+        for event in events:
+            log_type = event.get('log_type')
+            src_ip = event.get('src_ip')
+            filename = (event.get('filename') or event.get('uri') or '').lower()
+            mime_type = event.get('mime_type', '').lower()
+            file_source = event.get('file_source', '').lower()
+            direction = event.get('direction', '')
+
+            is_download = (
+                log_type in {'files', 'http'} and
+                direction == 'inbound' and
+                src_ip
+            )
+            is_risky_file = (
+                mime_type in risky_mime_types or
+                filename.endswith(risky_extensions) or
+                file_source in {'http', 'ssl'}
+            )
+
+            if is_download and is_risky_file:
+                if src_ip not in downloads_by_ip:
+                    downloads_by_ip[src_ip] = {
+                        'files': set(),
+                        'mime_types': set(),
+                        'download_count': 0,
+                        'last_time': ''
+                    }
+                downloads_by_ip[src_ip]['files'].add(filename or 'unknown')
+                downloads_by_ip[src_ip]['mime_types'].add(mime_type or 'unknown')
+                downloads_by_ip[src_ip]['download_count'] += 1
+                event_time = event.get('event_time') or event.get('ts') or ''
+                if event_time > downloads_by_ip[src_ip]['last_time']:
+                    downloads_by_ip[src_ip]['last_time'] = event_time
+
+        signals = []
+        for src_ip, data in downloads_by_ip.items():
+            if data['download_count'] >= 1:
+                signal = {
+                    'signal_type': 'EXECUTABLE_FILE_DOWNLOAD',
+                    'src_ip': src_ip,
+                    'download_count': data['download_count'],
+                    'filenames': ', '.join(sorted(data['files'])),
+                    'mime_types': ', '.join(sorted(data['mime_types'])),
+                    'severity': 'HIGH',
+                    'timestamp': data['last_time']
+                }
+                print(f"  ✓ Executable file download: {src_ip} → {data['download_count']} risky file(s)")
+                signals.append(signal)
+        return signals
+
+    def _detect_rare_external_source(self, events):
+        """Detect downloads from rare or newly seen external hosts."""
+        rare_by_ip = {}
+
+        for event in events:
+            src_ip = event.get('src_ip')
+            dest_ip = event.get('dest_ip')
+            domain = event.get('host') or event.get('server_name') or event.get('domain') or dest_ip
+            is_download = event.get('direction') == 'inbound'
+            reputation = event.get('reputation', 'unknown')
+            first_seen_days = event.get('first_seen_days', 999)
+            internal_hosts_contacting = event.get('internal_hosts_contacting', 999)
+
+            is_rare = (
+                is_download and
+                src_ip and
+                domain and
+                (
+                    reputation in {'unknown', 'suspicious'} or
+                    first_seen_days <= 7 or
+                    internal_hosts_contacting <= 2
+                )
+            )
+
+            if is_rare:
+                if src_ip not in rare_by_ip:
+                    rare_by_ip[src_ip] = {'sources': set(), 'last_time': ''}
+                rare_by_ip[src_ip]['sources'].add(str(domain))
+                event_time = event.get('event_time') or event.get('ts') or ''
+                if event_time > rare_by_ip[src_ip]['last_time']:
+                    rare_by_ip[src_ip]['last_time'] = event_time
+
+        signals = []
+        for src_ip, data in rare_by_ip.items():
+            source_count = len(data['sources'])
+            if source_count >= 1:
+                signal = {
+                    'signal_type': 'RARE_EXTERNAL_SOURCE',
+                    'src_ip': src_ip,
+                    'rare_source_count': source_count,
+                    'sources': ', '.join(sorted(data['sources'])),
+                    'severity': 'HIGH',
+                    'timestamp': data['last_time']
+                }
+                print(f"  ✓ Rare external source: {src_ip} → {source_count} source(s)")
+                signals.append(signal)
+        return signals
+
+    def _detect_post_download_beacon(self, events):
+        """Detect new outbound communication shortly after a risky download."""
+        download_times_by_ip = {}
+        beacon_by_ip = {}
+
+        for event in events:
+            if event.get('direction') != 'inbound':
+                continue
+
+            src_ip = event.get('src_ip')
+            filename = (event.get('filename') or event.get('uri') or '').lower()
+            mime_type = event.get('mime_type', '').lower()
+            if not src_ip:
+                continue
+
+            if (
+                filename.endswith(('.exe', '.dll', '.scr', '.ps1', '.bat', '.cmd', '.vbs', '.js')) or
+                mime_type in {'application/x-dosexec', 'application/x-msdownload', 'text/x-powershell'}
+            ):
+                download_times_by_ip.setdefault(src_ip, []).append(event.get('event_time') or event.get('ts') or '')
+
+        for event in events:
+            if event.get('direction') != 'outbound':
+                continue
+
+            src_ip = event.get('src_ip')
+            if src_ip not in download_times_by_ip:
+                continue
+
+            is_new_destination = event.get('first_seen_days', 999) <= 7
+            has_small_repeated_flow = (
+                event.get('connection_count', 0) >= 3 and
+                event.get('bytes_transferred', 0) <= 1000000
+            )
+            if is_new_destination and has_small_repeated_flow:
+                if src_ip not in beacon_by_ip:
+                    beacon_by_ip[src_ip] = {'destinations': set(), 'connection_count': 0, 'last_time': ''}
+                destination = event.get('host') or event.get('server_name') or event.get('dest_ip')
+                beacon_by_ip[src_ip]['destinations'].add(str(destination))
+                beacon_by_ip[src_ip]['connection_count'] += event.get('connection_count', 1)
+                event_time = event.get('event_time') or event.get('ts') or ''
+                if event_time > beacon_by_ip[src_ip]['last_time']:
+                    beacon_by_ip[src_ip]['last_time'] = event_time
+
+        signals = []
+        for src_ip, data in beacon_by_ip.items():
+            if data['connection_count'] >= 3:
+                signal = {
+                    'signal_type': 'POST_DOWNLOAD_BEACON',
+                    'src_ip': src_ip,
+                    'new_destination_count': len(data['destinations']),
+                    'connection_count': data['connection_count'],
+                    'destinations': ', '.join(sorted(data['destinations'])),
+                    'severity': 'CRITICAL',
+                    'timestamp': data['last_time']
+                }
+                print(f"  ✓ Post-download beacon: {src_ip} → {data['connection_count']} new outbound connections")
                 signals.append(signal)
         return signals
     
