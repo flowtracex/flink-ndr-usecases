@@ -67,6 +67,12 @@ class FlinkSQLSignalRunner:
             return self._detect_high_entropy_dns(events)
         elif "encoded-tunneling-pattern" in signal_name or "encoded_tunneling_pattern" in signal_name:
             return self._detect_encoded_tunneling_pattern(events)
+        elif "backup-server-contact" in signal_name or "backup_server_contact" in signal_name:
+            return self._detect_backup_server_contact(events)
+        elif "admin-management-protocol" in signal_name or "admin_management_protocol" in signal_name:
+            return self._detect_admin_management_protocol(events)
+        elif "destructive-recovery-action" in signal_name or "destructive_recovery_action" in signal_name:
+            return self._detect_destructive_recovery_action(events)
         return []
     
     def _detect_port_scan(self, events):
@@ -420,6 +426,130 @@ class FlinkSQLSignalRunner:
             probability = count / length
             entropy -= probability * math.log2(probability)
         return entropy
+
+    def _detect_backup_server_contact(self, events):
+        """Detect internal hosts contacting backup or snapshot infrastructure."""
+        contacts_by_ip = {}
+
+        for event in events:
+            src_ip = event.get('src_ip')
+            dest_ip = event.get('dest_ip')
+            dest_role = event.get('dest_role', '').lower()
+            service = event.get('service', '').lower()
+            dest_port = event.get('dest_port')
+
+            is_backup_target = (
+                'backup' in dest_role or
+                'snapshot' in dest_role or
+                service in {'veeam', 'commvault', 'netbackup', 'rubrik'} or
+                dest_port in {10001, 9392}
+            )
+
+            if src_ip and dest_ip and is_backup_target:
+                if src_ip not in contacts_by_ip:
+                    contacts_by_ip[src_ip] = {'targets': set(), 'last_time': ''}
+                contacts_by_ip[src_ip]['targets'].add(dest_ip)
+                event_time = event.get('event_time') or event.get('ts') or ''
+                if event_time > contacts_by_ip[src_ip]['last_time']:
+                    contacts_by_ip[src_ip]['last_time'] = event_time
+
+        signals = []
+        for src_ip, data in contacts_by_ip.items():
+            target_count = len(data['targets'])
+            if target_count >= 2:
+                signal = {
+                    'signal_type': 'BACKUP_SERVER_CONTACT',
+                    'src_ip': src_ip,
+                    'backup_target_count': target_count,
+                    'severity': 'HIGH',
+                    'timestamp': data['last_time']
+                }
+                print(f"  ✓ Backup server contact: {src_ip} → {target_count} backup targets")
+                signals.append(signal)
+        return signals
+
+    def _detect_admin_management_protocol(self, events):
+        """Detect admin protocol usage toward backup infrastructure."""
+        admin_ports = {22: 'SSH', 135: 'RPC', 445: 'SMB', 3389: 'RDP', 5985: 'WinRM', 5986: 'WinRM-HTTPS'}
+        admin_by_ip = {}
+
+        for event in events:
+            src_ip = event.get('src_ip')
+            dest_role = event.get('dest_role', '').lower()
+            dest_port = event.get('dest_port')
+
+            if (
+                src_ip and
+                dest_port in admin_ports and
+                ('backup' in dest_role or 'snapshot' in dest_role)
+            ):
+                if src_ip not in admin_by_ip:
+                    admin_by_ip[src_ip] = {'services': set(), 'last_time': ''}
+                admin_by_ip[src_ip]['services'].add(admin_ports[dest_port])
+                event_time = event.get('event_time') or event.get('ts') or ''
+                if event_time > admin_by_ip[src_ip]['last_time']:
+                    admin_by_ip[src_ip]['last_time'] = event_time
+
+        signals = []
+        for src_ip, data in admin_by_ip.items():
+            service_count = len(data['services'])
+            if service_count >= 2:
+                services_list = ', '.join(sorted(data['services']))
+                signal = {
+                    'signal_type': 'ADMIN_MANAGEMENT_PROTOCOL',
+                    'src_ip': src_ip,
+                    'admin_service_count': service_count,
+                    'services_list': services_list,
+                    'severity': 'HIGH',
+                    'timestamp': data['last_time']
+                }
+                print(f"  ✓ Admin management protocol: {src_ip} → {services_list}")
+                signals.append(signal)
+        return signals
+
+    def _detect_destructive_recovery_action(self, events):
+        """Detect commands that impair recovery before ransomware encryption."""
+        destructive_actions = {
+            'delete_snapshot',
+            'delete_backup',
+            'disable_backup_job',
+            'stop_backup_service',
+            'purge_restore_point'
+        }
+        actions_by_ip = {}
+
+        for event in events:
+            src_ip = event.get('src_ip')
+            action = event.get('action', '').lower()
+            dest_role = event.get('dest_role', '').lower()
+
+            if (
+                src_ip and
+                action in destructive_actions and
+                ('backup' in dest_role or 'snapshot' in dest_role)
+            ):
+                if src_ip not in actions_by_ip:
+                    actions_by_ip[src_ip] = {'actions': set(), 'count': 0, 'last_time': ''}
+                actions_by_ip[src_ip]['actions'].add(action)
+                actions_by_ip[src_ip]['count'] += 1
+                event_time = event.get('event_time') or event.get('ts') or ''
+                if event_time > actions_by_ip[src_ip]['last_time']:
+                    actions_by_ip[src_ip]['last_time'] = event_time
+
+        signals = []
+        for src_ip, data in actions_by_ip.items():
+            if data['count'] >= 2:
+                signal = {
+                    'signal_type': 'DESTRUCTIVE_RECOVERY_ACTION',
+                    'src_ip': src_ip,
+                    'destructive_action_count': data['count'],
+                    'actions_list': ', '.join(sorted(data['actions'])),
+                    'severity': 'CRITICAL',
+                    'timestamp': data['last_time']
+                }
+                print(f"  ✓ Destructive recovery action: {src_ip} → {data['count']} actions")
+                signals.append(signal)
+        return signals
     
     def run(self):
         """Execute all SQL files"""

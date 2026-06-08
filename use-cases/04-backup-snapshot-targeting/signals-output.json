@@ -1,0 +1,25 @@
+[
+  {
+    "signal_type": "ADMIN_MANAGEMENT_PROTOCOL",
+    "src_ip": "10.100.40.77",
+    "admin_service_count": 2,
+    "services_list": "RDP, WinRM",
+    "severity": "HIGH",
+    "timestamp": "2026-02-04T01:09:00Z"
+  },
+  {
+    "signal_type": "BACKUP_SERVER_CONTACT",
+    "src_ip": "10.100.40.77",
+    "backup_target_count": 3,
+    "severity": "HIGH",
+    "timestamp": "2026-02-04T01:09:00Z"
+  },
+  {
+    "signal_type": "DESTRUCTIVE_RECOVERY_ACTION",
+    "src_ip": "10.100.40.77",
+    "destructive_action_count": 4,
+    "actions_list": "delete_backup, delete_snapshot, disable_backup_job, stop_backup_service",
+    "severity": "CRITICAL",
+    "timestamp": "2026-02-04T01:09:00Z"
+  }
+]

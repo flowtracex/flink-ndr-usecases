@@ -173,6 +173,11 @@ cd use-cases/01-lateral-movement
 - Persistent communication with suspicious C2 servers
 - Request/response command patterns
 
+**UC-04: Backup / Snapshot Targeting Detection**
+- Backup server and repository contact
+- Admin protocol use against recovery infrastructure
+- Destructive backup or snapshot actions
+
 **UC-07: Large Volume Data Exfiltration Detection**
 - Internal data staging from multiple internal sources
 - Large outbound upload spike

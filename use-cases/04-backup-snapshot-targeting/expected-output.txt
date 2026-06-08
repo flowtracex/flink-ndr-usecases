@@ -1,0 +1,34 @@
+============================================================
+UC-04: Backup / Snapshot Targeting Detection - Expected Output
+============================================================
+
+LAYER 1: Flink Signal Generation
+
+[INFO] Loading: sample-data.json
+[INFO] Loaded 12 events
+[INFO] Found 3 signal definitions
+
+[SIGNAL] admin-management-protocol
+  - Admin management protocol: 10.100.40.77 -> RDP, WinRM
+
+[SIGNAL] backup-server-contact
+  - Backup server contact: 10.100.40.77 -> 3 backup targets
+
+[SIGNAL] destructive-recovery-action
+  - Destructive recovery action: 10.100.40.77 -> 4 actions
+
+Generated 3 signals
+  - ADMIN_MANAGEMENT_PROTOCOL: 10.100.40.77
+  - BACKUP_SERVER_CONTACT: 10.100.40.77
+  - DESTRUCTIVE_RECOVERY_ACTION: 10.100.40.77
+
+LAYER 2: Python Correlation
+
+[DETECTION] BACKUP_SNAPSHOT_TARGETING
+  Source: 10.100.40.77
+  Severity: CRITICAL
+  Signals: 3
+  Backup Targets: 3
+  Destructive Actions: 4
+
+Results saved to: ../../output/ransomware-detections.db

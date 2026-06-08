@@ -1,0 +1,54 @@
+{
+  "rule_id": "RANSOM-BACKUP-001",
+  "rule_name": "backup_snapshot_targeting_detection",
+  "description": "Detects ransomware preparation against backup and snapshot infrastructure",
+  "required_signals": [
+    "BACKUP_SERVER_CONTACT",
+    "ADMIN_MANAGEMENT_PROTOCOL",
+    "DESTRUCTIVE_RECOVERY_ACTION"
+  ],
+  "time_window_minutes": 10,
+  "detection_type": "BACKUP_SNAPSHOT_TARGETING",
+  "severity": "CRITICAL",
+  "confidence": "HIGH",
+  "mitre_attack": {
+    "tactic": "TA0040",
+    "tactic_name": "Impact",
+    "techniques": [
+      {
+        "id": "T1490",
+        "name": "Inhibit System Recovery"
+      },
+      {
+        "id": "T1486",
+        "name": "Data Encrypted for Impact"
+      },
+      {
+        "id": "T1021",
+        "name": "Remote Services"
+      }
+    ]
+  },
+  "recommended_actions": [
+    "Immediately isolate the source host from backup networks",
+    "Disable active sessions from the suspected account",
+    "Validate backup job and repository integrity",
+    "Confirm whether snapshots or restore points were deleted",
+    "Preserve backup server logs and remote command history",
+    "Review other hosts for similar recovery impairment behavior"
+  ],
+  "false_positive_considerations": [
+    "Planned backup maintenance",
+    "Backup platform upgrades",
+    "Storage migration projects",
+    "Disaster recovery exercises",
+    "Authorized backup administrator activity"
+  ],
+  "tuning_notes": {
+    "backup_target_threshold": 2,
+    "admin_protocol_threshold": 2,
+    "destructive_action_threshold": 2,
+    "time_window_minutes": 10,
+    "severity_escalation": "Keep CRITICAL for destructive backup or snapshot actions"
+  }
+}
