@@ -1,0 +1,21 @@
+[
+  {
+    "detection_type": "IMPOSSIBLE_TRAVEL_IDENTITY_COMPROMISE",
+    "severity": "CRITICAL",
+    "user_id": "alex.chen@example.com",
+    "previous_source": "entra_id",
+    "current_source": "okta",
+    "previous_city": "London",
+    "current_city": "Singapore",
+    "previous_time": "2025-01-29T09:00:00Z",
+    "current_time": "2025-01-29T09:45:00Z",
+    "elapsed_minutes": 45.0,
+    "distance_km": 10847.8,
+    "speed_kmh": 14463.8,
+    "current_ip": "103.12.44.91",
+    "mfa_result": "not_challenged",
+    "device_trust": "unknown",
+    "asn_reputation": "hosting_provider",
+    "risk_score": 88
+  }
+]

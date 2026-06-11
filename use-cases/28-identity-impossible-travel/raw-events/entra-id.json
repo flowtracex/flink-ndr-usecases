@@ -1,0 +1,24 @@
+[
+  {
+    "createdDateTime": "2025-01-29T09:00:00Z",
+    "userPrincipalName": "alex.chen@example.com",
+    "ipAddress": "51.140.88.10",
+    "location": {
+      "city": "London",
+      "countryOrRegion": "GB",
+      "geoCoordinates": {
+        "latitude": 51.5074,
+        "longitude": -0.1278
+      }
+    },
+    "status": {
+      "errorCode": 0
+    },
+    "conditionalAccessStatus": "success",
+    "deviceDetail": {
+      "trustType": "Azure AD joined"
+    },
+    "riskDetail": "none",
+    "riskLevelAggregated": "low"
+  }
+]

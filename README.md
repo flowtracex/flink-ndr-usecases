@@ -193,6 +193,11 @@ cd use-cases/01-lateral-movement
 - Rare external source serving the file
 - New outbound beacon behavior after download
 
+**UC-28: Normalized Identity Impossible Travel Detection**
+- Straight Python demo for identity log normalization
+- Entra ID, AD, Okta, and VPN mapped into one schema
+- One impossible-travel rule across normalized identity events
+
 ### 🔜 Coming Soon
 
 - SMB lateral spread

@@ -1,0 +1,17 @@
+[
+  {
+    "timestamp": "2025-01-29T09:50:00Z",
+    "username": "alex.chen@example.com",
+    "remote_ip": "103.12.44.91",
+    "geo_city": "Singapore",
+    "geo_country": "SG",
+    "geo_lat": 1.3521,
+    "geo_lon": 103.8198,
+    "event": "vpn_login",
+    "result": "allow",
+    "mfa": "not_challenged",
+    "device_posture": "unknown",
+    "asn_reputation": "hosting_provider",
+    "risk": 91
+  }
+]

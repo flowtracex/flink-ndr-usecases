@@ -1,0 +1,7 @@
+[DETECTION] IMPOSSIBLE_TRAVEL_IDENTITY_COMPROMISE
+User: alex.chen@example.com
+Travel: London -> Singapore in 45.0 minutes
+Sources: entra_id -> okta
+Speed: 14463.8 km/h
+Risk: MFA=not_challenged, Device=unknown, ASN=hosting_provider
+Severity: CRITICAL

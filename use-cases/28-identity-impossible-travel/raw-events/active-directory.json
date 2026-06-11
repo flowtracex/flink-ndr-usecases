@@ -1,0 +1,18 @@
+[
+  {
+    "TimeCreated": "2025-01-29T10:10:00Z",
+    "EventID": 4624,
+    "TargetUserName": "maria.garcia",
+    "TargetDomainName": "EXAMPLE",
+    "IpAddress": "10.20.4.18",
+    "WorkstationName": "NYC-LAPTOP-018",
+    "LogonType": 2,
+    "Status": "0x0",
+    "geo": {
+      "city": "New York",
+      "country": "US",
+      "lat": 40.7128,
+      "lon": -74.006
+    }
+  }
+]

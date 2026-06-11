@@ -1,0 +1,34 @@
+[
+  {
+    "published": "2025-01-29T09:45:00Z",
+    "actor": {
+      "alternateId": "alex.chen@example.com"
+    },
+    "client": {
+      "ipAddress": "103.12.44.91",
+      "geographicalContext": {
+        "city": "Singapore",
+        "country": "SG",
+        "geolocation": {
+          "lat": 1.3521,
+          "lon": 103.8198
+        }
+      }
+    },
+    "outcome": {
+      "result": "SUCCESS"
+    },
+    "debugContext": {
+      "debugData": {
+        "riskScore": 88,
+        "requestId": "okta-req-7f31"
+      }
+    },
+    "securityContext": {
+      "asOrg": "Cloud Hosting Provider"
+    },
+    "authenticationContext": {
+      "credentialProvider": "PASSWORD"
+    }
+  }
+]
